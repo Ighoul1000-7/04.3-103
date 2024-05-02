@@ -1,13 +1,10 @@
 from fastapi import FastAPI, Form
 from textblob import TextBlob
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-
-# Монтируем папку со статическими файлами
+from translate import Translator
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
 html_form = """
 <div>
     <form method="post" style='max-width: 600px;margin: 50px auto;background-color: #fff;padding: 20px;border-radius: 8px;box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);'>
@@ -17,26 +14,25 @@ html_form = """
 </div>
 """
 
-from translate import Translator
-
+# Функция перевода
 def translate_text(text):
     translator = Translator(from_lang="ru", to_lang="en")
     translation = translator.translate(text)
     return translation
 
-# Пример использования
-
-
+# Главная страница
 @app.get("/", response_class=HTMLResponse)
 async def read_form():
     return html_form
 
+# Событие на нажатия кнопки
 @app.post("/", response_class=HTMLResponse)
 async def process_form(text: str = Form(...)):
-    # Анализ тональности текста
+    # Перевод текста
     translated_text = translate_text(text)
     blob = TextBlob(translated_text)
-    print(blob)
+
+    # Анализ тональности текста
     sentiment_score = blob.sentiment.polarity
 
     # Определение тональности
